@@ -5,10 +5,7 @@ import db.DbException;
 import model.dao.DepartmentDao;
 import model.entities.Department;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.*;
 
 public class DepartmentDaoJDBC implements DepartmentDao {
@@ -29,12 +26,14 @@ public class DepartmentDaoJDBC implements DepartmentDao {
                     "INSERT INTO department " +
                             "(Name) " +
                             "VALUES " +
-                            "(?)"
+                            "(?)",
+                    Statement.RETURN_GENERATED_KEYS
             );
 
             st.setString(1, obj.getName());
 
             int rowsAffected = st.executeUpdate();
+
             if(rowsAffected > 0) {
                 ResultSet rs = st.getGeneratedKeys();
 
@@ -43,7 +42,7 @@ public class DepartmentDaoJDBC implements DepartmentDao {
                     obj.setId(id);
                 }
 
-                DB.closeResultSet(rs);
+
             } else {
                 throw new DbException("Unexpected error! No rows affected!");
             }
@@ -132,14 +131,14 @@ public class DepartmentDaoJDBC implements DepartmentDao {
 
             List<Department> list = new ArrayList<>();
 
-            if(rs.next()) {
+            while (rs.next()) {
                 Department dep = new Department();
                 dep.setId(rs.getInt("Id"));
                 dep.setName(rs.getString("Name"));
                 list.add(dep);
 
             }
-            return null;
+            return list;
         } catch (SQLException e) {
             throw new DbException(e.getMessage());
         } finally {
